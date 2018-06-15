@@ -38,7 +38,7 @@ class AlarmClockDaemon:
 
         self.alarm_clock.setDaemon(True)
         self.alarm_clock.start()
-        
+
         # join() with is_alive() is only way catch signals
         while self.httpserver.is_alive():
             self.httpserver.join(2**31)
@@ -63,7 +63,7 @@ try:
         alarmclock_daemon.run()
     else:
         daemon_runner = runner.DaemonRunner(alarmclock_daemon)
-        daemon_runner.daemon_context.files_preserve = [handler.stream]
+        daemon_runner.daemon_context.files_preserve = [daemonHandler.stream]
         daemon_runner.do_action()
         pass
     

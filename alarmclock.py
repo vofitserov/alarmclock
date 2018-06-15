@@ -10,13 +10,14 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
 from alarm import *
 from config import *
+from sound import *
 
 logger = logging.getLogger("alarmclock")
 
 SENSOR = 12
 UP = 16
 DOWN = 20
-SOUND = 13 # to remember
+SOUND = 26 
 
 class AlarmClock(threading.Thread):
     def __init__(self):
@@ -28,6 +29,7 @@ class AlarmClock(threading.Thread):
         GPIO.setup(SENSOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(UP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(DOWN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(SOUND, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         
         self.font_day = graphics.Font()
         self.font_day.LoadFont(BASE_DIR + "fonts/4x6.bdf")
@@ -41,6 +43,8 @@ class AlarmClock(threading.Thread):
         self.font_alarm.LoadFont(BASE_DIR + "fonts/7x13.bdf")
         self.color_alarm = graphics.Color(234, 0, 52)
         self.color_alarm_colon = graphics.Color(255, 130, 42)
+
+        self.player = Player()
         self.done = False
         return
         
@@ -68,7 +72,15 @@ class AlarmClock(threading.Thread):
         logger.info("AlarmClock is running")
         self.color_black = graphics.Color(0,0,0)
         while not self.done:
-            #self.color_black, self.color_pixel = self.color_pixel, self.color_black
+            # handle sound play
+            if GPIO.input(SOUND) == 0:
+                self.player.play(SOUND_FILE)
+            elif GPIO.input(SOUND) == 1:
+                self.player.stop()
+                pass
+
+            # handle buttons
+            self.matrix.Clear()
             if GPIO.input(SENSOR) == 0:
                 if GPIO.input(UP) == 0:
                     self.alarm.change_up()
@@ -89,10 +101,10 @@ class AlarmClock(threading.Thread):
                 self.day_text(0, 6, local_day)
                 pass
             time.sleep(1)
-            self.matrix.Clear()
             pass
         GPIO.cleanup()
         logger.info("GPIO cleanup is done")
+        self.player.shutdown()
         return
     
       
