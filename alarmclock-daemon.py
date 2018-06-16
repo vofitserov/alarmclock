@@ -58,10 +58,15 @@ try:
     alarmclock_daemon = AlarmClockDaemon()
     if sys.argv[1] == "test":
         stderrHandler = logging.StreamHandler(sys.stderr)
+        stderrHandler.setFormatter(formatter)
         logger.addHandler(stderrHandler)
         logger.info("running in test mode, logging to stderr")
         alarmclock_daemon.run()
     else:
+        daemonHandler = logging.handlers.RotatingFileHandler(
+            LOGFILE, maxBytes=100000, backupCount=5)
+        daemonHandler.setFormatter(formatter)
+        logger.addHandler(daemonHandler)
         daemon_runner = runner.DaemonRunner(alarmclock_daemon)
         daemon_runner.daemon_context.files_preserve = [daemonHandler.stream]
         daemon_runner.do_action()

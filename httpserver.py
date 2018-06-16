@@ -17,11 +17,11 @@ html = """
 <body>
 
 <h1>%s</h1>
-
+%s
 <form action="/">
-  <input type="submit" name="action" value="Open">
-  <input type="submit" name="action" value="Close">
-  <input type="submit" name="action" value="Refresh">
+  <input type="submit" name="action" value="Play">
+  <input type="submit" name="action" value="Set">
+  <input type="submit" name="action" value="Off">
 </form>
 
 <br>
@@ -32,11 +32,23 @@ html = """
 """
 
 class HTTPAlarmClockHandler(BaseHTTPRequestHandler):
+
+    def config(self):
+        html = ""
+        module = globals().get("config", None)
+        config_vars = {key: value for key, value in module.__dict__.iteritems() if
+                        not (key.startswith('__') or key.startswith('_'))}
+        html += "<table border=0>\n"
+        for (k, v) in config_vars:
+            html += "<tr><td>%s</td><td>%d</td></tr>\n" % (k, str(v))
+        html += "</table>\n"
+        return html
+
     def respond(self, message):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        self.wfile.write(html % (message))
+        self.wfile.write(html % (message, self.config()))
         self.wfile.close()
         return
 
@@ -52,7 +64,21 @@ class HTTPAlarmClockHandler(BaseHTTPRequestHandler):
             return
         params = urlparse.parse_qs(parsed.query)
         action = params["action"][0].lower() if "action" in params else "ok"
-        return self.respond("Alarm Clock is " + action)
+        # Get alarm object from the server.
+        alarm = self.server.alarm_clock.alarm
+        if action == "set":
+            alarm.set_on()
+        elif action == "off":
+            alarm.set_off()
+        elif action == "play":
+            alarm.player.play(SOUND_FILE)
+            pass
+        if alarm.set:
+            status = "Alarm clock is SET for %d:%d" % \
+                     (alarm.hour, alarm.minute)
+        else:
+            status = "Alarm clock is OFF."
+        return self.respond(status)
 
 class HTTPAlarmClockServer(HTTPServer):
     def __init__(self, alarm_clock, address, handler_class):

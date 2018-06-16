@@ -21,9 +21,3 @@ logger = logging.getLogger("alarmclock")
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-daemonHandler = logging.handlers.RotatingFileHandler(
-                  LOGFILE, maxBytes=100000, backupCount=5)
-
-daemonHandler.setFormatter(formatter)
-logger.addHandler(daemonHandler)
-

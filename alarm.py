@@ -2,51 +2,44 @@
 
 import time
 
+from config import *
+
 class Alarm:
-    WAIT = 1
-    NOISE = 2
-    SILENCE = 3
-    
-    def __init__(self, hour, minute):
+    def __init__(self, hour, minute, player):
         self.hour = hour
         self.minute = minute
-        self.state = Alarm.WAIT
+        self.silenced = False
+        self.set = False
+        self.player = player
         return
 
-    def see_noise(self, local_time):
-        if self.state == WAIT:
-            if local_time.tm_hour == self.hour and local_time.tm_min == self.minute:
-                self.start_noise()
-                self.state = Alarm.NOISE
-                pass
-        elif self.state == NOISE:
-            if local_time.tm_hour != self.hour or local_time.tm_min != self.minute:
-                self.stop_noise()
-                self.state = Alarm.WAIT
-                pass
-        elif self.state == SILENCE:
-            if local_time.tm_hour != self.hour or local_time.tm_min != self.minute:
-                self.state = Alarm.WAIT
+    def check(self, local_time):
+        if local_time.tm_hour == self.hour \
+                and local_time.tm_min == self.minute:
+            if self.set and not self.silenced:
+                self.player.play(SOUND_FILE)
                 pass
         else:
-            print "Unexpected state=", self.state
+            self.silenced = False
+            pass
 
+        return
+
+    def set_on(self):
+        self.set = True
+        return
+
+    def set_off(self):
+        self.set = False
         return
 
     def silence(self):
-        self.stop_noise()
-        self.state = Alarm.SILENCE
-        return
-
-    def start_noise(self):
-
-        return
-
-    def stop_noise(self):
-
+        self.player.stop()
+        self.silenced = True
         return
 
     def change_up(self, m = 15):
+        self.set = True
         self.minute = self.minute + m
         if self.minute >= 60:
             self.hour = self.hour + 1
@@ -58,6 +51,7 @@ class Alarm:
         return
     
     def change_down(self, m = 15):
+        self.set = True
         self.minute = self.minute - m
         if self.minute < 0:
             self.hour = self.hour - 1

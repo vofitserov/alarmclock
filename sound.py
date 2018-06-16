@@ -37,7 +37,7 @@ class PlaySilence(threading.Thread):
     def shutdown(self):
         self.done = True
         self.join(3)
-        return;
+        return
 
 class PlaySound(threading.Thread):
     def __init__(self, device, sound):
