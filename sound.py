@@ -57,7 +57,7 @@ class PlaySound(threading.Thread):
     def run(self):
         logger.info("playing %s" % self.sound)
         fwave = wave.open(self.sound, 'rb')
-        logger.info('%d channels, %d sampling rate\n' %
+        logger.info('%d channels, %d sampling rate' %
                     (fwave.getnchannels(),fwave.getframerate()))
         # Set attributes
         self.device.setchannels(fwave.getnchannels())
@@ -96,6 +96,8 @@ class Player:
         self.play_thread = None
         self.play_silence = PlaySilence()
         self.device = alsaaudio.PCM(device=SOUND_DEVICE)
+        self.mixer = alsaaudio.Mixer("PCM")
+        self.mixer.setvolume(SOUND_VOLUME)
         logger.info('device:%s' % SOUND_DEVICE)
         return
     

@@ -7,6 +7,7 @@ import threading
 import getpass
 
 from config import *
+from sound import *
 
 # Named global logger from config
 logger = logging.getLogger("alarmclock")
@@ -15,9 +16,9 @@ html = """
 <!DOCTYPE html>
 <html>
 <body>
-
 <h1>%s</h1>
 %s
+<br>
 <form action="/">
   <input type="submit" name="action" value="Play">
   <input type="submit" name="action" value="Set">
@@ -35,12 +36,13 @@ class HTTPAlarmClockHandler(BaseHTTPRequestHandler):
 
     def config(self):
         html = ""
-        module = globals().get("config", None)
-        config_vars = {key: value for key, value in module.__dict__.iteritems() if
-                        not (key.startswith('__') or key.startswith('_'))}
+        module = globals()
         html += "<table border=0>\n"
-        for (k, v) in config_vars:
-            html += "<tr><td>%s</td><td>%d</td></tr>\n" % (k, str(v))
+        for (key, value) in module.iteritems():
+            if key.startswith('html') or key.startswith('_'): continue
+            if not isinstance(value, str) and not isinstance(value, int): continue
+            html += "<tr><td>%s</td><td>%s</td></tr>\n" % (key, str(value))
+            pass
         html += "</table>\n"
         return html
 
@@ -71,7 +73,7 @@ class HTTPAlarmClockHandler(BaseHTTPRequestHandler):
         elif action == "off":
             alarm.set_off()
         elif action == "play":
-            alarm.player.play(SOUND_FILE)
+            self.server.player.play(SOUND_FILE)
             pass
         if alarm.set:
             status = "Alarm clock is SET for %d:%d" % \
@@ -84,6 +86,7 @@ class HTTPAlarmClockServer(HTTPServer):
     def __init__(self, alarm_clock, address, handler_class):
         HTTPServer.__init__(self, address, handler_class)
         self.alarm_clock = alarm_clock
+        self.player = Player()
         return
 
 class HTTPAlarmClockController(threading.Thread):

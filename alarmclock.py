@@ -38,13 +38,14 @@ class AlarmClock(threading.Thread):
         self.color_day = graphics.Color(255, 179, 0)
         self.color_time = graphics.Color(154, 240, 0)
         self.color_pixel = graphics.Color(0, 149, 67)
-        self.alarm = Alarm(7, 30)
         self.font_alarm = graphics.Font()
         self.font_alarm.LoadFont(BASE_DIR + "fonts/7x13.bdf")
         self.color_alarm = graphics.Color(234, 0, 52)
         self.color_alarm_colon = graphics.Color(255, 130, 42)
 
         self.player = Player()
+        self.alarm = Alarm(7, 30, self.player)
+
         self.done = False
         return
         
@@ -64,7 +65,10 @@ class AlarmClock(threading.Thread):
         options.rows = 16
         options.chain_length = 1
         options.brightness = BRIGHTNESS
+        options.daemon = 0
+        options.drop_privileges = 0
         self.matrix = RGBMatrix(options = options)
+        logger.info("matrix setup is done: %s", getpass.getuser())
         return
         
     def run(self):

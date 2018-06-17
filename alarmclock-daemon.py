@@ -59,6 +59,7 @@ try:
     if sys.argv[1] == "test":
         stderrHandler = logging.StreamHandler(sys.stderr)
         stderrHandler.setFormatter(formatter)
+        logger.propagate = False
         logger.addHandler(stderrHandler)
         logger.info("running in test mode, logging to stderr")
         alarmclock_daemon.run()
